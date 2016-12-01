@@ -10,7 +10,9 @@ import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -36,24 +38,46 @@ public class MainActivity extends AppCompatActivity {
     JSONObject jsonObject;
     JSONArray jsonArray;
     String JSON_STRING;
-    Spinner listView;
+    //Spinner listView;
     Context context;
+    Spinner spinner;
     BackgroundTask backgroundTask;
-
+    //El spinner presenta problemas con el hilo
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        listView = (Spinner) findViewById(R.id.listView);
+        context = this;
+        spinner = (Spinner) findViewById(R.id.listView);
         items = new ArrayList<>();
-
         adapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_list_item_1, items);
-        listView.setAdapter(adapter);
-        backgroundTask =  new BackgroundTask(context);
-        backgroundTask.execute();
+        spinner.setAdapter(adapter);
+        poblarSpinner();
+    }
 
-        context = this;
+    public void verPrueba(View view) {
+        Intent intent = new Intent(MainActivity.this, EnviarPrueba.class );
+        intent.putExtra("idprueba",spinner.getSelectedItem().toString());
+        startActivity(intent);
+    }
+
+    public void poblarSpinner(){
+        Thread thread = new Thread(new Runnable() {
+            public void run() {
+                while (true) {
+                    try {
+                        items.clear();
+                        backgroundTask =  new BackgroundTask(context);
+                        backgroundTask.execute();
+                        Thread.sleep(30000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        thread.start();
     }
 
     class BackgroundTask extends AsyncTask<Void,Void,String> {
@@ -63,12 +87,11 @@ public class MainActivity extends AppCompatActivity {
 
         BackgroundTask(Context ctx){
             this.ctx=ctx;
-
         }
 
         @Override
         protected void onPreExecute() {
-            URLconsulta="http://"+getString(R.string.ipBase)+"/reto/index.php/getpruebas";
+            URLconsulta="http://tecmmas.com/reto/index.php/prueba/getpruebas";
         }
 
         @Override
@@ -99,19 +122,17 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
             try {
-                if(!result.equalsIgnoreCase("FALSE")) {
-                    jsonObject = new JSONObject(result);
-                    jsonArray = jsonObject.getJSONArray("pruebas");
-                    for (int i = 0; i < jsonArray.length(); i++) {
-                        JSONObject JSO = jsonArray.getJSONObject(i);
+                jsonObject = new JSONObject(result);
+                jsonArray = jsonObject.getJSONArray("pruebas");
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject JSO = jsonArray.getJSONObject(i);
+                    if(JSO.getString("estado").equals("0")){
                         items.add(JSO.getString("idprueba"));
                     }
-                    adapter.notifyDataSetChanged();
                 }
+                adapter.notifyDataSetChanged();
 
             } catch (JSONException e) {
-                items.add("No hay pruebas" + "  ");
-                adapter.notifyDataSetChanged();
                 e.printStackTrace();
             }
         }

@@ -1,0 +1,172 @@
+manifest
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"></uses-permission>
+    
+
+
+definicion del boton
+
+    private Button buttonCapturar1;
+    private Bitmap bitmapCapturar1;
+    private Uri file_uri_capturar1;
+    private String enconded_string_capturar1;
+    private File file;
+    private ImageView imageView_capturar1;
+    
+
+
+
+funcion que usa el storage de la camara
+
+buttonCapturar1=(Button) findViewById(R.id.buttonCapturar1);
+
+
+        buttonCapturar1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent  intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                getFileUri1();
+                intent.putExtra(MediaStore.EXTRA_OUTPUT,file_uri_capturar1);
+                startActivityForResult(intent,10);
+
+            }
+        });
+
+
+
+protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode==10 && resultCode==RESULT_OK){
+            new Encode_image1().execute();
+        }else if(requestCode==11 && resultCode==RESULT_OK){
+            new Encode_image2().execute();
+        }
+    }
+
+
+private void getFileUri1() {
+        String nameFile="tmp";
+        file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                +File.separator+ nameFile);
+        file_uri_capturar1 = Uri.fromFile(file);
+
+    }
+
+
+    private class Encode_image1 extends AsyncTask<Void,Void,Void>{
+
+        @Override
+        protected Void doInBackground(Void... params) {
+
+            Bitmap newBitmap = null;
+            bitmapCapturar1=BitmapFactory.decodeFile(file_uri_capturar1.getPath());
+            //bitmapCapturar1=redimensionarImagenMaximo(bitmapCapturar1,320,240);
+            bitmapCapturar1=redimensionarImagenMaximo(bitmapCapturar1,640,480);
+
+            Bitmap.Config config = bitmapCapturar1.getConfig();
+            if(config==null){
+                config= Bitmap.Config.ARGB_8888;
+            }
+            newBitmap=Bitmap.createBitmap(bitmapCapturar1.getWidth(),bitmapCapturar1.getHeight(),config);
+
+            //newBitmap=Bitmap.createBitmap(40,20,config);
+            Canvas newCanvas = new Canvas(newBitmap);
+            // newBitmap=redimensionarImagenMaximo(newBitmap,320,240);
+            newCanvas.drawBitmap(bitmapCapturar1,0,0,null);
+
+            String label=numero_placa+" - 0 - "+idpruebafoto1+"   "+getCurrentTimeStamp();
+
+            Paint paintText =new Paint(Paint.ANTI_ALIAS_FLAG);
+
+            //paintText.setShadowLayer(10f,10f,10f,Color.YELLOW);
+            paintText.setColor(Color.WHITE);
+            //newCanvas.drawRect(10, 10, 250, 25, paintText);
+            newCanvas.drawRect(20, 20, 500, 50, paintText);
+            
+
+            paintText.setColor(Color.BLACK);
+            //paintText.setTextSize(10);
+            paintText.setTextSize(20);
+            paintText.setStyle(Paint.Style.FILL);
+
+            Rect rectText = new Rect();
+
+            paintText.getTextBounds(label,0,label.length(),rectText);
+
+            //newCanvas.drawText(label,12,21,paintText);
+            newCanvas.drawText(label,24,42,paintText);
+
+            bitmapCapturar1=newBitmap;
+
+            ByteArrayOutputStream stream=new ByteArrayOutputStream();
+
+            bitmapCapturar1.compress(Bitmap.CompressFormat.JPEG,70,stream);
+
+            byte[] array = stream.toByteArray();
+            enconded_string_capturar1 ="data:image/jpeg;base64,"+Base64.encodeToString(array,0);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            imageView_capturar1.setImageBitmap(bitmapCapturar1);
+            makeRequest1();
+        }
+    }
+
+
+
+    private void makeRequest1() {
+        SharedPreferences sharedPreferences= getSharedPreferences("configuracion", Context.MODE_PRIVATE);
+        String ipserver=sharedPreferences.getString("ipserver","");
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        StringRequest request = new StringRequest(Request.Method.POST, ipserver+"/webtecmmas/index.php/android/camara/guardarfoto",
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        Toast.makeText(context,response,Toast.LENGTH_LONG).show();
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                HashMap<String,String> map = new HashMap<>();
+                SharedPreferences sharedPreferences= getSharedPreferences("configuracion", Context.MODE_PRIVATE);
+                String mac=sharedPreferences.getString("macTablet","");
+                map.put("foto",enconded_string_capturar1);
+                map.put("idprueba",idpruebafoto1);
+                map.put("fecha",getCurrentTimeStamp());
+                map.put("mac",mac);
+         //       buttonCapturar1.setVisibility(View.INVISIBLE);
+                return map;
+            }
+        };
+        requestQueue.add(request);
+    }
+
+
+
+
+
+
+
+
+
+    public Bitmap redimensionarImagenMaximo(Bitmap mBitmap, float newWidth, float newHeigth){
+        //Redimensionamos
+        int width = mBitmap.getWidth();
+        int height = mBitmap.getHeight();
+        float scaleWidth = ((float) newWidth) / width;
+        float scaleHeight = ((float) newHeigth) / height;
+        // create a matrix for the manipulation
+        Matrix matrix = new Matrix();
+        // resize the bit map
+        matrix.postScale(scaleWidth, scaleHeight);
+        // recreate the new Bitmap
+        return Bitmap.createBitmap(mBitmap, 0, 0, width, height, matrix, false);
+    }
