@@ -8,11 +8,11 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
-import android.opengl.Matrix;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.provider.SyncStateContract;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
@@ -37,6 +37,8 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -59,7 +61,7 @@ public class EnviarPrueba extends AppCompatActivity implements LocationListener 
     Bitmap photobmp;
     ImageView iv;
     String encodedImage;
-    RequestQueue requestQueue;
+    //RequestQueue requestQueue;
     TextView textprueba;
     TextView textmensaje;
     String JSON_STRING;
@@ -94,7 +96,10 @@ public class EnviarPrueba extends AppCompatActivity implements LocationListener 
         } catch (SecurityException e) {
             Log.e("PERMISSION_EXCEPTION", "PERMISSION_NOT_GRANTED");
         }
-        requestQueue = Volley.newRequestQueue(this);
+    /**    Location loc = new Location(LocationManager.GPS_PROVIDER);
+        latitude = loc.getLatitude();
+        longitude = loc.getLongitude();
+        location = "(" +  String.valueOf(latitude)  + "," +  String.valueOf(longitude) + ")";**/
     }
 
     public void capturar(View v) {
@@ -107,48 +112,52 @@ public class EnviarPrueba extends AppCompatActivity implements LocationListener 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 1 && resultCode == RESULT_OK) {
-            photobmp = BitmapFactory.decodeFile(rutafoto);
-            iv.setImageBitmap(photobmp);
-
+            //photobmp = BitmapFactory.decodeFile(rutafoto);
+            try {
+                photobmp = redimensionarImagenMaximo(rutafoto);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             photobmp.compress(Bitmap.CompressFormat.JPEG, 40, baos);
             byte[] imageBytes = baos.toByteArray();
-            encodedImage = "data:image/jpeg;base64,"+Base64.encodeToString(imageBytes, Base64.DEFAULT);
+            encodedImage = Base64.encodeToString(imageBytes, Base64.DEFAULT);
             //Se ejecuta en segundo plano para no colgar la aplicacion
             //Log.d("console2", encodedImage.toString());
             guardarDato();
+            iv.setImageBitmap(photobmp);
         }
     }
 
     private void guardarDato(){
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
         StringRequest request = new StringRequest(Request.Method.POST, String.valueOf("http://tecmmas.com/reto/index.php/prueba/guardarprueba"),
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
                         Toast.makeText(EnviarPrueba.this, response, Toast.LENGTH_LONG).show();
-                        textmensaje.setText("R/"+response);
+                        textmensaje.setText("R/ "+response);
                     }
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 Toast.makeText(EnviarPrueba.this, error.getMessage(), Toast.LENGTH_SHORT).show();
-                textmensaje.setText("E/"+error.getMessage()+" "+location+" "+prueba+" "+competidor);
+                textmensaje.setText("E/ "+error.getMessage());
             }
         })    {
 
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 HashMap<String,String> map = new HashMap<>();
-                map.put("idprueba",prueba.toString());
-                map.put("competidor",competidor.toString());
-                map.put("gps",location.toString());
-                map.put("foto",encodedImage.toString());
+                map.put("idprueba",prueba);
+                map.put("competidor",competidor);
+                map.put("gps",location);
+                map.put("foto",encodedImage);
                 return map;
             }
 
         };
         requestQueue.add(request);
-        Toast.makeText(getApplicationContext(), location, Toast.LENGTH_SHORT).show();
     }
 
     class BackgroundTask extends AsyncTask<Void,Void,String> {
@@ -223,18 +232,19 @@ public class EnviarPrueba extends AppCompatActivity implements LocationListener 
         Intent intent = new Intent(EnviarPrueba.this, MainActivity.class );
         startActivity(intent);
     }
-    /**
-    public Bitmap redimensionarImagenMaximo(Bitmap mBitmap, float newWidth, float newHeigth){
-        //Redimensionamos
-        int width = mBitmap.getWidth();
-        int height = mBitmap.getHeight();
-        float scaleWidth = ((float) newWidth) / width;
-        float scaleHeight = ((float) newHeigth) / height;
-        // create a matrix for the manipulation
-        Matrix matrix = new Matrix();
-        // resize the bit map
-        matrix.postScale(scaleWidth, scaleHeight);
-        // recreate the new Bitmap
-        return Bitmap.createBitmap(mBitmap, 0, 0, width, height, matrix, false);
-    }**/
+    
+    public Bitmap redimensionarImagenMaximo(String ruta) throws IOException {
+     BitmapFactory.Options options=new BitmapFactory.Options();
+     InputStream is=new FileInputStream(ruta);
+     BitmapFactory.decodeStream(is, null, options);
+     is.close();
+     is=new FileInputStream(ruta);
+     // here w and h are the desired width and height
+     options.inSampleSize=Math.max(options.outWidth/460, options.outHeight/288); //Max 460 x 288 is my desired...
+     // bmp is the resized bitmap
+     Bitmap bmp=BitmapFactory.decodeStream(is, null, options);
+     is.close();
+     Log.d("holamundo", "Scaled bitmap bytes, " + bmp.getRowBytes() + ", width:" + bmp.getWidth() + ", height:" + bmp.getHeight());
+     return bmp;
+    }
 }

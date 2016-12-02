@@ -9,32 +9,49 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.felipe.gpssample.MainActivity">
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Lista de pruebas"
+        android:id="@+id/listaPruebas"
+        android:layout_gravity="center_horizontal|top"
+        android:textSize="30dp"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentTop="true" />
+
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_centerHorizontal="true"
+        android:layout_height="wrap_content"
         android:layout_alignParentBottom="true">
+
+        <ListView
+            android:layout_width="95dp"
+            android:layout_height="421dp"
+            android:id="@+id/listView"
+            android:layout_gravity="left|bottom" />
 
         <TextView
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Lista de pruebas"
-            android:id="@+id/listaPruebas"
-            android:layout_gravity="center_horizontal|top"
+            android:layout_height="320dp"
+            android:text="Grupo"
+            android:id="@+id/textView3"
+            android:layout_gravity="top|center_horizontal"
+            android:textSize="20dp" />
+
+        <TextView
+            android:layout_width="106dp"
+            android:layout_height="320dp"
+            android:text="Objetivos cumplidos"
+            android:id="@+id/textView4"
+            android:layout_gravity="top|center_vertical|right"
+            android:textSize="20dp" />
+
+        <TextView
+            android:layout_width="167dp"
+            android:layout_height="67dp"
+            android:id="@+id/textView5"
+            android:layout_gravity="bottom|center_horizontal|right"
             android:textSize="15dp" />
 
-        <Spinner
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/listView"
-            android:layout_gravity="center" />
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="VER MAS"
-            android:id="@+id/button2"
-            android:layout_gravity="center_horizontal|bottom"
-            android:onClick="verPrueba" />
     </FrameLayout>
 </RelativeLayout>

@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -30,36 +31,58 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 
 public class MainActivity extends AppCompatActivity {
 
     ArrayList<String> items;
     ArrayAdapter<String> adapter;
+    HashMap <String,Integer> grupos;
     JSONObject jsonObject;
     JSONArray jsonArray;
     String JSON_STRING;
-    //Spinner listView;
+    ListView listView;
     Context context;
     Spinner spinner;
+    Iterator it;
     BackgroundTask backgroundTask;
+    TextView tvGrupo;
+    TextView tvCantidad;
+    TextView tvAutores;
     //El spinner presenta problemas con el hilo
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         context = this;
-        spinner = (Spinner) findViewById(R.id.listView);
+        grupos = new HashMap<>();
+        listView = (ListView) findViewById(R.id.listView);
+        tvGrupo = (TextView) findViewById(R.id.textView3);
+        tvCantidad = (TextView) findViewById(R.id.textView4);
+        tvAutores = (TextView) findViewById(R.id.textView5);
+        tvAutores.setText("AUTORES:"+"\r\n"+"Víctor Fonseca"+"\r\n"+"Diego Sierra");
         items = new ArrayList<>();
         adapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_list_item_1, items);
-        spinner.setAdapter(adapter);
+        listView.setClickable(true);
+        listView.setAdapter(adapter);
         poblarSpinner();
+        verPrueba();
     }
 
-    public void verPrueba(View view) {
-        Intent intent = new Intent(MainActivity.this, EnviarPrueba.class );
-        intent.putExtra("idprueba",spinner.getSelectedItem().toString());
-        startActivity(intent);
+    public void verPrueba() {
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position,
+                                    long id) {
+                view.setSelected(true); //****new
+                String nombre = (String) listView.getItemAtPosition(position);
+                Intent intent = new Intent(MainActivity.this, EnviarPrueba.class);
+                intent.putExtra("idprueba", nombre);
+                startActivity(intent);
+            }
+        });
     }
 
     public void poblarSpinner(){
@@ -68,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
                 while (true) {
                     try {
                         items.clear();
+                        grupos.clear();
                         backgroundTask =  new BackgroundTask(context);
                         backgroundTask.execute();
                         Thread.sleep(30000);
@@ -78,6 +102,21 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         thread.start();
+    }
+
+    public void actualizarTabla(){
+        //String ids = "Grupo"+"\r\n"+"\r\n"+"---------------"+"\r\n";
+        //String objetivos = "Objetivos cumplidos"+"\r\n"+"-----------------"+"\r\n";
+        String ids = "Grupo"+"\r\n"+"\r\n";
+        String objetivos = "Objetivos cumplidos"+"\r\n";
+        it = grupos.keySet().iterator();
+        while(it.hasNext()){
+            String key = (String) it.next();
+            ids += key+"\r\n";
+            objetivos += grupos.get(key)+"\r\n";
+        }
+        tvGrupo.setText(ids);
+        tvCantidad.setText(objetivos);
     }
 
     class BackgroundTask extends AsyncTask<Void,Void,String> {
@@ -128,9 +167,23 @@ public class MainActivity extends AppCompatActivity {
                     JSONObject JSO = jsonArray.getJSONObject(i);
                     if(JSO.getString("estado").equals("0")){
                         items.add(JSO.getString("idprueba"));
+                    }else{
+                        it = grupos.keySet().iterator();
+                        boolean repetido = false;
+                        while(it.hasNext()){
+                            String key = (String) it.next();
+                            if(JSO.getString("competidor").equals(key)){
+                                grupos.put(key,grupos.get(key)+1);
+                                repetido = true;
+                            }
+                        }
+                        if(repetido==false){
+                            grupos.put(JSO.getString("competidor"),1);
+                        }
                     }
                 }
                 adapter.notifyDataSetChanged();
+                actualizarTabla();
 
             } catch (JSONException e) {
                 e.printStackTrace();

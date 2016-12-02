@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">GPSSample</string>
+    <string name="app_name">RALLY</string>
     <string name="ipBase">192.168.100.4</string>
 </resources>
