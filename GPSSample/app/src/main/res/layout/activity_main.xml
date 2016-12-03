@@ -7,9 +7,11 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.example.felipe.gpssample.MainActivity">
+    tools:context="com.example.felipe.gpssample.MainActivity"
+    android:background="#000000">
 
     <TextView
+        style="@style/FontTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Lista de pruebas"
@@ -22,36 +24,44 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true">
+        android:layout_alignParentBottom="true"
+        >
 
         <ListView
             android:layout_width="95dp"
             android:layout_height="421dp"
             android:id="@+id/listView"
-            android:layout_gravity="left|bottom" />
+            android:layout_gravity="left|bottom"
+            android:layout_margin="10dp"
+            android:background="#AAADAD" />
 
         <TextView
+            style="@style/CodeFont"
             android:layout_width="wrap_content"
             android:layout_height="320dp"
             android:text="Grupo"
             android:id="@+id/textView3"
             android:layout_gravity="top|center_horizontal"
-            android:textSize="20dp" />
+            android:textSize="20dp"
+            android:background="#FFFFFF"/>
 
         <TextView
+            style="@style/CodeFont"
             android:layout_width="106dp"
             android:layout_height="320dp"
             android:text="Objetivos cumplidos"
             android:id="@+id/textView4"
             android:layout_gravity="top|center_vertical|right"
-            android:textSize="20dp" />
+            android:textSize="15dp"
+            android:background="#FFFFFF"/>
 
         <TextView
             android:layout_width="167dp"
             android:layout_height="67dp"
             android:id="@+id/textView5"
             android:layout_gravity="bottom|center_horizontal|right"
-            android:textSize="15dp" />
+            android:textSize="15dp"
+            android:background="#FFFFFF" />
 
     </FrameLayout>
 </RelativeLayout>

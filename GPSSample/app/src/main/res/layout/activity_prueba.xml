@@ -2,23 +2,25 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:weightSum="1">
+    android:weightSum="1"
+    android:background="#500202">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="326dp"
-        android:text="New Text"
         android:id="@+id/textView2"
         android:layout_gravity="center_vertical"
         android:gravity="center_horizontal"
-        android:textSize="30dp" />
+        android:textSize="30dp"
+        android:background="#340303"
+        android:textColor="#FFFFFF"/>
 
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="66dp"
-        android:text="pruebas"
         android:id="@+id/textView"
-        android:layout_gravity="center_horizontal" />
+        android:layout_gravity="center_horizontal"
+        android:background="#FFFFFF"/>
 
     <Button
         android:layout_width="wrap_content"
@@ -26,7 +28,9 @@
         android:text="RESOLVER"
         android:id="@+id/button"
         android:layout_gravity="center_horizontal"
-        android:onClick="capturar" />
+        android:onClick="capturar"
+        android:textColor="#FFFFFF"
+        android:background="#000000" />
 
     <Button
         android:layout_width="wrap_content"
@@ -34,11 +38,13 @@
         android:text="VOLVER"
         android:id="@+id/button3"
         android:layout_gravity="center_horizontal"
-        android:onClick="regresar" />
+        android:onClick="regresar"
+        android:textColor="#FFFFFF"
+        android:background="#000000"/>
 
     <ImageView
-        android:layout_width="165dp"
-        android:layout_height="365dp"
+        android:layout_width="121dp"
+        android:layout_height="269dp"
         android:id="@+id/imageView"
         android:layout_gravity="center_horizontal"
         android:contentDescription="@null"/>
